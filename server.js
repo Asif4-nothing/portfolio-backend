@@ -1,32 +1,26 @@
 import express from 'express';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import cors from 'cors'; // CORS import kiya
+import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
-
-// CORS allow karein taaki aapka frontend backend se connect ho sake
-app.use(cors()); 
+app.use(cors());
 app.use(express.json());
-
-// Frontend files serve karne ke liye (agar same jagah host kar rahe ho)
-app.use(express.static('public')); 
+app.use(express.static('public'));
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
-  
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Please fill all fields' });
   }
 
   try {
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      // parseInt use kiya taaki '0587' jaisi values crash na karein
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: false, 
+      host: 'smtp.gmail.com', // Maine hardcode kar diya taaki spelling mistake na ho
+      port: 465,              // ✅ FIX: 465 Port use kar rahe hain (Better for Render)
+      secure: true,           // ✅ FIX: SSL True kar diya
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
@@ -35,16 +29,17 @@ app.post('/api/contact', async (req, res) => {
 
     await transporter.sendMail({
       from: `"Portfolio Contact" <${process.env.SMTP_USER}>`,
-      to: process.env.YOUR_EMAIL, 
+      to: process.env.YOUR_EMAIL,
       subject: `New Message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
     });
 
+    console.log("Email sent successfully");
     res.json({ ok: true, message: 'Email sent successfully!' });
 
   } catch (err) {
     console.error('Email Error:', err);
-    res.status(500).json({ error: 'Failed to send email. Please try again.' });
+    res.status(500).json({ error: 'Failed to send email. Server connection issue.' });
   }
 });
 
