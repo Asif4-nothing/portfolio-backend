@@ -8,7 +8,6 @@ dotenv.config();
 const app = express();
 app.use(cors()); // CORS enabled
 app.use(express.json());
-// app.use(express.static('public')); // Agar aap frontend yahaan se serve nahi kar rahe toh isko hata sakte hain
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
@@ -17,7 +16,7 @@ app.post('/api/contact', async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465, // Fix for connection timeout
+      port: 465, 
       secure: true, 
       auth: {
         user: process.env.SMTP_USER,
@@ -39,6 +38,6 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// Fly.io automatically sets PORT environment variable, isliye hum use lenge.
+// Railway bhi Render ki tarah PORT variable khud set karta hai
 const PORT = parseInt(process.env.PORT || '3000', 10);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
