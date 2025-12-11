@@ -1,26 +1,24 @@
 import express from 'express';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import cors from 'cors';
+import cors from 'cors'; 
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors()); // CORS enabled
 app.use(express.json());
-app.use(express.static('public'));
+// app.use(express.static('public')); // Agar aap frontend yahaan se serve nahi kar rahe toh isko hata sakte hain
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Please fill all fields' });
-  }
+  if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' });
 
   try {
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com', // Maine hardcode kar diya taaki spelling mistake na ho
-      port: 465,              // ✅ FIX: 465 Port use kar rahe hain (Better for Render)
-      secure: true,           // ✅ FIX: SSL True kar diya
+      host: 'smtp.gmail.com',
+      port: 465, // Fix for connection timeout
+      secure: true, 
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
@@ -34,16 +32,13 @@ app.post('/api/contact', async (req, res) => {
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
     });
 
-    console.log("Email sent successfully");
-    res.json({ ok: true, message: 'Email sent successfully!' });
-
+    res.json({ ok: true });
   } catch (err) {
-    console.error('Email Error:', err);
-    res.status(500).json({ error: 'Failed to send email. Server connection issue.' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
+// Fly.io automatically sets PORT environment variable, isliye hum use lenge.
 const PORT = parseInt(process.env.PORT || '3000', 10);
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
